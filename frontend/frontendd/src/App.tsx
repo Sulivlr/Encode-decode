@@ -1,35 +1,84 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import React, { useState } from 'react';
+import { useAppDispatch, useAppSelector } from './app/hooks.ts';
+import { encodeMessage, decodeMessage } from './store/appThunks.ts';
+import { TextField, Button, Container, Grid, Typography, Box } from '@mui/material';
 
-function App() {
-  const [count, setCount] = useState(0)
+const App: React.FC = () => {
+    const dispatch = useAppDispatch();
+    const { encodedMessage, decodedMessage, error } = useAppSelector(state => state.app);
+    const [password, setPassword] = useState('');
+    const [inputText, setInputText] = useState('');
 
-  return (
-    <>
-      <div>
-        <a href="https://vitejs.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
-}
+    const handleEncode = async () => {
+        if (!password) {
+            return;
+        }
+        dispatch(encodeMessage({ password, message: inputText }));
+    };
 
-export default App
+    const handleDecode = async () => {
+        if (!password || !inputText) {
+            return;
+        }
+        dispatch(decodeMessage({ password, message: inputText }));
+    };
+
+    return (
+        <Container maxWidth="md">
+            <Box mt={5}>
+                <Typography variant="h4" align="center" gutterBottom>
+                    Vigenere Cipher
+                </Typography>
+                <Grid container spacing={2} justifyContent="center">
+                    <Grid item xs={12} sm={6}>
+                        <TextField
+                            fullWidth
+                            label="Password"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                        />
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                        <TextField
+                            fullWidth
+                            label="Message"
+                            multiline
+                            rows={4}
+                            value={inputText}
+                            onChange={(e) => setInputText(e.target.value)}
+                        />
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                        <Button fullWidth variant="contained" onClick={handleEncode}>
+                            Encode
+                        </Button>
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                        <Button fullWidth variant="contained" onClick={handleDecode}>
+                            Decode
+                        </Button>
+                    </Grid>
+                    <Grid item xs={12}>
+                        <TextField
+                            fullWidth
+                            label="Encoded/Decoded Text"
+                            multiline
+                            rows={4}
+                            value={encodedMessage || decodedMessage}
+                            disabled
+                        />
+                    </Grid>
+                    {error && (
+                        <Grid item xs={12}>
+                            <Typography color="error" align="center">
+                                {error}
+                            </Typography>
+                        </Grid>
+                    )}
+                </Grid>
+            </Box>
+        </Container>
+    );
+};
+
+export default App;
